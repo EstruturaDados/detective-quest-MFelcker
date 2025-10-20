@@ -1,47 +1,96 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-// Desafio Detective Quest
-// Tema 4 - Árvores e Tabela Hash
-// Este código inicial serve como base para o desenvolvimento das estruturas de navegação, pistas e suspeitos.
-// Use as instruções de cada região para desenvolver o sistema completo com árvore binária, árvore de busca e tabela hash.
 
-int main() {
+// Define estrutura
 
-    // 🌱 Nível Novato: Mapa da Mansão com Árvore Binária
-    //
-    // - Crie uma struct Sala com nome, e dois ponteiros: esquerda e direita.
-    // - Use funções como criarSala(), conectarSalas() e explorarSalas().
-    // - A árvore pode ser fixa: Hall de Entrada, Biblioteca, Cozinha, Sótão etc.
-    // - O jogador deve poder explorar indo à esquerda (e) ou à direita (d).
-    // - Finalize a exploração com uma opção de saída (s).
-    // - Exiba o nome da sala a cada movimento.
-    // - Use recursão ou laços para caminhar pela árvore.
-    // - Nenhuma inserção dinâmica é necessária neste nível.
+typedef struct Sala {
+    char nome[40];
+    struct Sala *esq;
+    struct Sala *dir;
+} Sala;
 
-    // 🔍 Nível Aventureiro: Armazenamento de Pistas com Árvore de Busca
-    //
-    // - Crie uma struct Pista com campo texto (string).
-    // - Crie uma árvore binária de busca (BST) para inserir as pistas coletadas.
-    // - Ao visitar salas específicas, adicione pistas automaticamente com inserirBST().
-    // - Implemente uma função para exibir as pistas em ordem alfabética (emOrdem()).
-    // - Utilize alocação dinâmica e comparação de strings (strcmp) para organizar.
-    // - Não precisa remover ou balancear a árvore.
-    // - Use funções para modularizar: inserirPista(), listarPistas().
-    // - A árvore de pistas deve ser exibida quando o jogador quiser revisar evidências.
+// Cria a sala
 
-    // 🧠 Nível Mestre: Relacionamento de Pistas com Suspeitos via Hash
-    //
-    // - Crie uma struct Suspeito contendo nome e lista de pistas associadas.
-    // - Crie uma tabela hash (ex: array de ponteiros para listas encadeadas).
-    // - A chave pode ser o nome do suspeito ou derivada das pistas.
-    // - Implemente uma função inserirHash(pista, suspeito) para registrar relações.
-    // - Crie uma função para mostrar todos os suspeitos e suas respectivas pistas.
-    // - Adicione um contador para saber qual suspeito foi mais citado.
-    // - Exiba ao final o “suspeito mais provável” baseado nas pistas coletadas.
-    // - Para hashing simples, pode usar soma dos valores ASCII do nome ou primeira letra.
-    // - Em caso de colisão, use lista encadeada para tratar.
-    // - Modularize com funções como inicializarHash(), buscarSuspeito(), listarAssociacoes().
-
-    return 0;
+Sala* criarSala(const char* nome) {
+    Sala* s = (Sala*) malloc(sizeof(Sala));
+    if (s == NULL) {
+        printf("Erro de memoria.\n");
+        exit(1);
+    }
+    strcpy(s->nome, nome);
+    s->esq = NULL;
+    s->dir = NULL;
+    return s;
 }
 
+// Libera a sala
+
+void liberar(Sala* r) {
+    if (r != NULL) {
+        liberar(r->esq);
+        liberar(r->dir);
+        free(r);
+    }
+}
+
+// Explora a sala
+
+void explorarSalas(Sala* raiz) {
+    Sala* atual = raiz;
+    char op;
+
+    if (atual == NULL) {
+        printf("Mapa vazio.\n");
+        return;
+    }
+
+    printf("=== Detective Quest ===\n");
+
+    while (1) {
+        printf("\nVoce esta em: %s\n", atual->nome);
+
+        if (atual->esq == NULL && atual->dir == NULL) {
+            printf("Fim do percurso.\n");
+            break;
+        }
+
+        printf("Escolha: ");
+        if (atual->esq) printf("[e] esquerda ");
+        if (atual->dir) printf("[d] direita ");
+        printf("[s] sair\n> ");
+
+        if (scanf(" %c", &op) != 1) break;
+
+        if (op == 's') {
+            printf("Exploracao encerrada.\n");
+            break;
+        } else if (op == 'e' && atual->esq != NULL) {
+            atual = atual->esq;
+        } else if (op == 'd' && atual->dir != NULL) {
+            atual = atual->dir;
+        } else {
+            printf("Opcao invalida para esta sala.\n");
+        }
+    }
+
+    printf("=== Fim ===\n");
+}
+
+int main(void) {
+
+    Sala* hall = criarSala("Hall de Entrada");
+    hall->esq = criarSala("Sala de Estar");
+    hall->dir = criarSala("Biblioteca");
+
+    hall->esq->esq = criarSala("Quarto de Hospedes");
+    hall->esq->dir = criarSala("Cozinha");
+
+    hall->dir->esq = criarSala("Escritorio");
+    hall->dir->dir = criarSala("Jardim de Inverno");
+
+    explorarSalas(hall);
+    liberar(hall);
+    return 0;
+}
